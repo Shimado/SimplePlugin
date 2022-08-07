@@ -3,6 +3,7 @@ package me.shimado.simpleplugin
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import org.apache.commons.codec.binary.Base64
+import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
@@ -10,6 +11,7 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import java.util.UUID
 
 class SItem {
@@ -60,87 +62,82 @@ class SItem {
             skull.setItemMeta(skullMeta);
             return create(skull, name, lore, enchant);
         }
+
+
+        /**
+         * СОЗДАЕТ ПРЕДМЕТ С ТЕГОМ
+         * **/
+
+        fun createTag(url: Any, name: String, lore: List<String>, enchant: Boolean, tagname: String, tag: String): ItemStack {
+            var item = when(url){
+                url is Material -> create(ItemStack(url as Material), name, lore, enchant)
+                url is String -> getHead(url as String, name, lore, false)
+                else -> create(url as ItemStack, name, lore, enchant)
+            }!!
+
+            var obj = NMS.getItemStack(item);
+            var nbt = NMS.getOrCreateTag_(obj);
+            NMS.setTag(nbt, tagname, tag);
+            NMS.setTag(obj, nbt);
+            return NMS.getItemBack(obj);
+        }
+
+
+        /**
+         * РАСШИФРОВЫВАЕТ ОПИСАНИЕ ПРЕДМЕТА
+         * **/
+
+        fun getTag(item: ItemStack, tag: String): String? {
+            var obj = NMS.getItemStack(item)
+
+            if(NMS.getTag_(obj) == null){
+                return null
+            }
+
+            return NMS.getTagTag(obj, tag)
+        }
+
+
+        /**
+         * СТАВИТ БРОНЮ
+         * **/
+
+        fun setArmor(item: ItemStack, armor: Double): ItemStack{
+            var modifier = AttributeModifier(UUID.randomUUID(), "geretic.armor", armor, AttributeModifier.Operation.ADD_NUMBER);
+            var meta = item.itemMeta;
+            meta!!.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            item.setItemMeta(meta);
+            return item;
+        }
+
+
+        /**
+         * КОЖАННАЯ БРОНЯ
+         **/
+
+        fun getColorArmor(color: Color, slot: Int): ItemStack {
+
+            var item = SItem.create(
+                when(slot){
+                    1 -> Material.LEATHER_HELMET
+                    2 -> Material.LEATHER_CHESTPLATE
+                    3 -> Material.LEATHER_LEGGINGS
+                    4 -> Material.LEATHER_BOOTS
+                    else -> Material.LEATHER_CHESTPLATE
+                }, " ", arrayListOf(), false);
+            var meta = item.getItemMeta() as LeatherArmorMeta;
+            meta.setColor(color);
+            item.setItemMeta(meta);
+
+            return item;
+
+        }
+
     }
+
 }
-//        fun createTag(url: Any, name: String, lore: List<String>, enchant: Boolean, tagname: String, tag: String): ItemStack {
-//            var item = when(url){
-//                url is Material -> create(ItemStack(url as Material), name, lore, enchant)
-//                url is String -> getHead(url as String, name, lore, false)
-//                else -> create(url as ItemStack, name, lore, enchant)
-//            }!!
-//
-//            Object obj = NMS_ULTIMATE.getItemStack(item);
-//            Object nbt = NMS_ULTIMATE.getOrCreateTag_(obj);
-//            NMS_ULTIMATE.setTag(nbt, tagname, tag);
-//            NMS_ULTIMATE.setTag(obj, nbt);
-//            return NMS_ULTIMATE.getItemBack(obj);
-//        }
-//
-//
-//        /**
-//         * РАСШИФРОВЫВАЕТ ОПИСАНИЕ ПРЕДМЕТА
-//         * **/
-//
-//        fun getTag(item: ItemStack, tag: String): String? {
-//            var obj = NMS_ULTIMATE.getItemStack(item);
-//
-//            if(NMS_ULTIMATE.getTag_(obj) == null){
-//                return null;
-//            }
-//
-//            String result = NMS_ULTIMATE.getTagTag(obj, tag);
-//
-//            if(result == null || result.length() == 0){
-//                return  null;
-//            }
-//
-//            return result;
-//        }
-//
-//        /**
-//         * СТАВИТ БРОНЮ
-//         * **/
-//
-//        fun setArmor(item: ItemStack, armor: Double): ItemStack{
-//            var modifier = AttributeModifier(UUID.randomUUID(), "geretic.armor", armor, AttributeModifier.Operation.ADD_NUMBER);
-//            var meta = item.itemMeta;
-//            meta!!.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
-//            item.setItemMeta(meta);
-//            return item;
-//        }
-//
-//        /**
-//         * КОЖАННАЯ БРОНЯ
-//         **/
-//
-//        public static ItemStack getColorArmor(Color color, int slot) {
-//
-//            Material material = null;
-//            switch (slot) {
-//                case 1:
-//                material = Material.LEATHER_HELMET;
-//                break;
-//                case 2:
-//                material = Material.LEATHER_CHESTPLATE;
-//                break;
-//                case 3:
-//                material = Material.LEATHER_LEGGINGS;
-//                break;
-//                case 4:
-//                material = Material.LEATHER_BOOTS;
-//                break;
-//            }
-//
-//            ItemStack item = ItemCreate.create(material, " ", new ArrayList<>(), false);
-//            LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
-//            meta.setColor(color);
-//            item.setItemMeta(meta);
-//
-//            return item;
-//
-//        }
-//
-//    }
+
+
 
 
 

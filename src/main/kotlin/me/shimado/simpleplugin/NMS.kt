@@ -5,444 +5,292 @@ import org.bukkit.Location
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import java.lang.reflect.Constructor
 import java.lang.reflect.Field
-import java.lang.reflect.InvocationTargetException
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 class NMS {
 
-    /**
-     * ПОЛУЧАЕТ НАЗВАНИЕ КЛАССА НЕПОСРЕДСТВЕННО NMS
-     */
+    companion object{
 
-    fun getNMSclass(param_name: String): Class<*>? {
-        return when(param_name.replace("(?:v1_)", "").replace(".{3}$", "").toInt()){
-            in 12..16 -> Class.forName("net.minecraft.server." + SimplePlugin.version + "." + param_name);
-            else -> Class.forName(param_name);
+        /**
+         * ПОЛУЧАЕТ НАЗВАНИЕ КЛАССА НЕПОСРЕДСТВЕННО NMS
+         */
+
+        fun getNMSclass(param_name: String): Class<*>? {
+            return when(param_name.replace("(?:v1_)", "").replace(".{3}$", "").toInt()){
+                in 12..16 -> Class.forName("net.minecraft.server." + SimplePlugin.version + "." + param_name);
+                else -> Class.forName(param_name);
+            }
         }
-    }
 
-    /**
-     * ДЛЯ 1.12.2 - 1.18.1 - ПОЛУЧАЕТ НАЗВАНИЕ КЛАССА БАККИТ.
-     */
+        /**
+         * ДЛЯ 1.12.2 - 1.18.1 - ПОЛУЧАЕТ НАЗВАНИЕ КЛАССА БАККИТ.
+         */
 
-    fun getCraftBukkitclass(param_name: String): Class<*>?  = Class.forName("org.bukkit.craftbukkit." + SimplePlugin.version + ".inventory." + param_name)
+        fun getCraftBukkitclass(param_name: String): Class<*>?  = Class.forName("org.bukkit.craftbukkit." + SimplePlugin.version + ".inventory." + param_name)
 
 
-    /**
-     * ВОЗВРАЩАЕТ ID ENTITY
-     */
+        /**
+         * ВОЗВРАЩАЕТ ID ENTITY
+         */
 
-    fun getEntityId(entity: Any?): Int {
-        var field: Field = when(SimplePlugin.version){
-            "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("at")
-            "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("as")
-            else -> getNMSclass("Entity")!!.getDeclaredField("id")
+        fun getEntityId(entity: Any?): Int {
+            var field: Field = when(SimplePlugin.version){
+                "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("at")
+                "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("as")
+                else -> getNMSclass("Entity")!!.getDeclaredField("id")
+            }
+            field.isAccessible = true
+            return field[entity] as Int
         }
-        field.isAccessible = true
-        return field[entity] as Int
-    }
 
-    /**
-     * ВОЗВРАЩАЕТ МИР, ГДЕ ИГРОК
-     */
+        /**
+         * ВОЗВРАЩАЕТ МИР, ГДЕ ИГРОК
+         */
 
-    fun getWorld(loc: Location): Any? = loc.world!!.javaClass.getMethod("getHandle").invoke(loc.world)
+        fun getWorld(loc: Location): Any? = loc.world!!.javaClass.getMethod("getHandle").invoke(loc.world)
 
-    /**
-     * ДОБАВЛЯЕТ В МИР СУЩЕСТВО
-     */
+        /**
+         * ДОБАВЛЯЕТ В МИР СУЩЕСТВО
+         */
 
-    fun addEntity(loc: Location, entity: Any?) = when(SimplePlugin.version){
+        fun addEntity(loc: Location, entity: Any?) = when(SimplePlugin.version){
             "v1_19_R1", "v1_18_R2" -> getNMSclass("net.minecraft.server.level.WorldServer")!!.getMethod("b", getNMSclass("net.minecraft.world.entity.Entity")).invoke(getWorld(loc), entity)
             "v1_18_R1" -> getNMSclass("net.minecraft.server.level.WorldServer")!!.getMethod("addFreshEntity", getNMSclass("net.minecraft.world.entity.Entity")).invoke(getWorld(loc), entity)
             "v1_17_R1" -> getNMSclass("net.minecraft.server.level.WorldServer")!!.getMethod("addEntity", getNMSclass("net.minecraft.world.entity.Entity")).invoke(getWorld(loc), entity)
             else -> getNMSclass("WorldServer")!!.getMethod("addEntity", getNMSclass("Entity")).invoke(getWorld(loc), entity)
-    }
+        }
 
-///**
-// * ВОЗВРАЩАЕТ БАККИТ СУЩЕСТВО
-// **/
-//
-//public static Object getEntityBack(Object entity) {
-//    try {
-//        if (MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            return getNMS_1_18("net.minecraft.world.entity.Entity").getMethod("getBukkitEntity").invoke(entity);
-//        } else {
-//            return getNMSclass("Entity").getMethod("getBukkitEntity").invoke(entity);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ENTITYFIREWORK
-// **/
-//
-//public static Object create_entity(Location loc, ItemStack firework) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            Constructor<?> constructor = getNMS_1_18("net.minecraft.world.entity.projectile.EntityFireworks").getConstructor(
-//                getNMS_1_18("net.minecraft.world.level.World"),
-//                double.class,
-//                        double.class,
-//            double.class,
-//            getNMS_1_18("net.minecraft.world.item.ItemStack"));
-//            return constructor.newInstance(getWorld(loc), loc.getX(), loc.getY(), loc.getZ(), getItemStack(firework));
-//        } else {
-//            Constructor<?> constructor = getNMSclass("EntityFireworks").getConstructor(
-//                getNMSclass("World"),
-//                double.class,
-//                        double.class,
-//            double.class,
-//            getNMSclass("ItemStack"));
-//            return constructor.newInstance(getWorld(loc), loc.getX(), loc.getY(), loc.getZ(), getItemStack(firework));
-//        }
-//    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ENTITYFIREWORK
-// **/
-//
-//public static void set_lifecycle(Object firework) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            getNMS_1_18("net.minecraft.world.entity.projectile.EntityFireworks").getDeclaredField("f").setInt(firework, 0);
-//        } else {
-//            getNMSclass("EntityFireworks").getDeclaredField("expectedLifespan").setInt(firework, 0);
-//        }
-//    } catch (IllegalAccessException e) {
-//        e.printStackTrace();
-//    } catch (NoSuchFieldException e) {
-//        e.printStackTrace();
-//    }
-//}
-//
-///**
-// * ОТПРАВЛЯЕТ ПАКЕТ
-// **/
-//
-//public static void sendPacket(Player player, Object packet) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            Object entityplayer = Class.forName("org.bukkit.craftbukkit." + MainFunGames.version_name + ".entity.CraftPlayer").getMethod("getHandle").invoke(player);
-//            Object playerConnection = entityplayer.getClass().getField("b").get(entityplayer);
-//            getNMS_1_18("net.minecraft.server.network.PlayerConnection").getMethod("a", getNMS_1_18("net.minecraft.network.protocol.Packet")).invoke(playerConnection, packet);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            Object entityplayer = Class.forName("org.bukkit.craftbukkit." + MainFunGames.version_name + ".entity.CraftPlayer").getMethod("getHandle").invoke(player);
-//            Object playerConnection = entityplayer.getClass().getField("b").get(entityplayer);
-//            getNMS_1_18("net.minecraft.server.network.PlayerConnection").getMethod("sendPacket", getNMS_1_18("net.minecraft.network.protocol.Packet")).invoke(playerConnection, packet);
-//        } else {
-//            Object entityplayer = Class.forName("org.bukkit.craftbukkit." + MainFunGames.version_name + ".entity.CraftPlayer").getMethod("getHandle").invoke(player);
-//            Object playerConnection = entityplayer.getClass().getField("playerConnection").get(entityplayer);
-//            getNMSclass("PlayerConnection").getMethod("sendPacket", getNMSclass("Packet")).invoke(playerConnection, packet);
-//        }
-//    } catch (Exception e) {
-//        e.printStackTrace();
-//    }
-//}
-//
-///**
-// * ПАКЕТ НА УНИЧТОЖЕНИЕ ENTITY
-// **/
-//
-//public static Object PacketDestroy(int id) {
-//    try {
-//        Constructor<?> constructor;
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            constructor = getNMS_1_18("net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy").getConstructor(int[].class);
-//        } else {
-//            constructor = getNMSclass("PacketPlayOutEntityDestroy").getConstructor(int[].class);
-//        }
-//        return constructor.newInstance(new int[]{id});
-//    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ПАКЕТ НА СТАТУС
-// **/
-//
-//public static Object PacketStatus(Object object, byte num) {
-//    try {
-//        Constructor<?> constructor;
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            constructor = getNMS_1_18("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus")
-//                .getConstructor(getNMS_1_18("net.minecraft.world.entity.Entity"), byte.class);
-//        } else {
-//            constructor = getNMSclass("PacketPlayOutEntityStatus").getConstructor(getNMSclass("Entity"), byte.class);
-//        }
-//        return constructor.newInstance(object, num);
-//    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * СПАВНИТ СОЗДАННЫЙ ENTITY
-// **/
-//
-//public static Object PacketSpawn(Object object) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            Constructor<?> constructor = getNMS_1_18("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity").getConstructor(getNMS_1_18("net.minecraft.world.entity.Entity"));
-//            return constructor.newInstance(object);
-//        } else if (MainFunGames.version_name.equals("v1_12_R1") || MainFunGames.version_name.contains("v1_13")) {
-//            Constructor<?> constructor1 = getNMSclass("PacketPlayOutSpawnEntity").getConstructor(getNMSclass("Entity"), int.class);
-//            return constructor1.newInstance(object, 76);
-//        } else {
-//            Constructor<?> constructor2 = getNMSclass("PacketPlayOutSpawnEntity").getConstructor(getNMSclass("Entity"));
-//            return constructor2.newInstance(object);
-//        }
-//    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ПАКЕТ НА META ENTITY
-// **/
-//
-//public static Object PacketPlayOutEntityMetadata(Object entity, Object watcher) {
-//    try {
-//        Constructor<?> constructor;
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            constructor = getNMS_1_18("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata").getConstructor(int.class, getNMS_1_18("net.minecraft.network.syncher.DataWatcher"), boolean.class);
-//        } else {
-//            constructor = getNMSclass("PacketPlayOutEntityMetadata").getConstructor(int.class, getNMSclass("DataWatcher"), boolean.class);
-//        }
-//        return constructor.newInstance(getEntityId(entity), watcher, false);
-//    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ПОЛУЧЕНИЕ ПРЕДМЕТА, ЧТОБЫ ЗАТЕМ ИЗМЕНЯТЬ ТЭГ
-// **/
-//
-//public static Object getItemStack(Object item) {
-//    try {
-//        if (MainFunGames.version_name.equals("v1_18_R2") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            return getNMS_1_18("org.bukkit.craftbukkit." + MainFunGames.version_name + ".inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
-//        } else {
-//            return getCraftBukkitclass("CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ВОЗВРАЩАЕТ ТЭГ ПРЕДМЕТА
-// **/
-//
-//public static Object getTag_(Object item) {
-//    try {
-//        if(MainFunGames.version_name.equals("v1_19_R1")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("u").invoke(item);
-//        }else if (MainFunGames.version_name.equals("v1_18_R2")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("t").invoke(item);
-//        } else if (MainFunGames.version_name.equals("v1_18_R1")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("s").invoke(item);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("getTag").invoke(item);
-//        } else {
-//            return getNMSclass("ItemStack").getMethod("getTag").invoke(item);
-//        }
-//    } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ПОЛУЧАЕТ ТЭГ, ЗАДАННЫЙ ДЛЯ БУМБОКСА
-// **/
-//
-//public static String getTagTag(Object item, String tagname) {
-//    try {
-//        Object tag = getTag_(item);
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            return (String) getNMS_1_18("net.minecraft.nbt.NBTTagCompound").getMethod("l", String.class).invoke(tag, tagname);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            return (String) getNMS_1_18("net.minecraft.nbt.NBTTagCompound").getMethod("getString", String.class).invoke(tag, tagname);
-//        } else {
-//            return (String) getNMSclass("NBTTagCompound").getMethod("getString", String.class).invoke(tag, tagname);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ПОЛУЧАЕТ, ЛИБО СОЗДАЕТ ТЭГ
-// **/
-//
-//public static Object getOrCreateTag_(Object item) {
-//    try {
-//        if(MainFunGames.version_name.equals("v1_19_R1")){
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("v").invoke(item);
-//        }else if (MainFunGames.version_name.equals("v1_18_R2")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("u").invoke(item);
-//        } else if (MainFunGames.version_name.equals("v1_18_R1")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("t").invoke(item);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            return getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("getOrCreateTag").invoke(item);
-//        } else if (MainFunGames.version_name.equals("v1_12_R1")) {
-//            Object object = getNMSclass("ItemStack").getMethod("getTag").invoke(item);
-//            try {
-//                return object == null ? getNMSclass("NBTTagCompound").getConstructor().newInstance() : object;
-//            } catch (InstantiationException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            return getNMSclass("ItemStack").getMethod("getOrCreateTag").invoke(item);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * ЗАДАЕТ ТЭГ ПОД БУМБОКС
-// **/
-//
-//public static void setTag(Object item, String tagname, String tag) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            getNMS_1_18("net.minecraft.nbt.NBTTagCompound").getMethod("a", String.class, String.class).invoke(item, tagname, tag);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            getNMS_1_18("net.minecraft.nbt.NBTTagCompound").getMethod("setString", String.class, String.class).invoke(item, tagname, tag);
-//        } else {
-//            getNMSclass("NBTTagCompound").getMethod("setString", String.class, String.class).invoke(item, tagname, tag);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//}
-//
-///**
-// * СТАВИТ ТЭГ НА ПРЕДМЕТ
-// **/
-//
-//public static void setTag(Object item, Object comp) {
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("c", getNMS_1_18("net.minecraft.nbt.NBTTagCompound")).invoke(item, comp);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            getNMS_1_18("net.minecraft.world.item.ItemStack").getMethod("setTag", getNMS_1_18("net.minecraft.nbt.NBTTagCompound")).invoke(item, comp);
-//        } else {
-//            getNMSclass("ItemStack").getMethod("setTag", getNMSclass("NBTTagCompound")).invoke(item, comp);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//}
-//
-///**
-// * ВОЗВРАЩАЕТ ПРЕДМЕТ С ИЗМЕНЕННЫМ ТЭГОМ
-// **/
-//
-//public static ItemStack getItemBack(Object item) {
-//    try {
-//        if (MainFunGames.version_name.equals("v1_18_R2") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            return (ItemStack) (getNMS_1_18("org.bukkit.craftbukkit." + MainFunGames.version_name + ".inventory.CraftItemStack").getMethod("asCraftMirror", getNMS_1_18("net.minecraft.world.item.ItemStack")).invoke(null, item));
-//        } else if (MainFunGames.version_name.equals("v1_18_R1") || MainFunGames.version_name.equals("v1_17_R1")) {
-//            return (ItemStack) (getCraftBukkitclass("CraftItemStack").getMethod("asCraftMirror", getNMS_1_18("net.minecraft.world.item.ItemStack")).invoke(null, item));
-//        } else {
-//            return (ItemStack) (getCraftBukkitclass("CraftItemStack").getMethod("asCraftMirror", getNMSclass("ItemStack")).invoke(null, item));
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-//
-///**
-// * DATAWATCHER АРМОРСТЕНДА
-// **/
-//
-//public static Object getDataWatcher(Object stand) {
-//    try {
-//        if (MainFunGames.version_name.equals("v1_18_R2") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            Field field = getNMS_1_18("net.minecraft.world.entity.Entity").getDeclaredField("Y");
-//            field.setAccessible(true);
-//            return field.get(stand);
-//        } else if (MainFunGames.version_name.equals("v1_18_R1")) {
-//            Field field = getNMS_1_18("net.minecraft.world.entity.Entity").getDeclaredField("Z");
-//            field.setAccessible(true);
-//            return field.get(stand);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            Field field = getNMS_1_18("net.minecraft.world.entity.Entity").getDeclaredField("Y");
-//            field.setAccessible(true);
-//            return field.get(stand);
-//        } else {
-//            return getNMSclass("Entity").getMethod("getDataWatcher").invoke(stand);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
-//        e.printStackTrace();
-//    }
-//    return null;
-//}
-//
-///**
-// * TileEntitySkull
-// **/
-//
-//public static void getTileEntitySkull(Block block, GameProfile profile) {
-//    Object a = getWorld(block.getLocation());
-//    try {
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            Object b = getNMS_1_18("net.minecraft.world.level.World").getMethod("getBlockEntity", getNMS_1_18("net.minecraft.core.BlockPosition"), boolean.class).invoke(a, getBlockPosition(block), true);
-//            getNMS_1_18("net.minecraft.world.level.block.entity.TileEntitySkull").getMethod("a", GameProfile.class).invoke(b, profile);
-//        } else if (MainFunGames.version_name.equals("v1_17_R1")) {
-//            Object b = getNMS_1_18("net.minecraft.world.level.World").getMethod("getTileEntity", getNMS_1_18("net.minecraft.core.BlockPosition")).invoke(a, getBlockPosition(block));
-//            getNMS_1_18("net.minecraft.world.level.block.entity.TileEntitySkull").getMethod("setGameProfile", GameProfile.class).invoke(b, profile);
-//        } else {
-//            Object b = getNMSclass("WorldServer").getMethod("getTileEntity", getNMSclass("BlockPosition")).invoke(a, getBlockPosition(block));
-//            getNMSclass("TileEntitySkull").getMethod("setGameProfile", GameProfile.class).invoke(b, profile);
-//        }
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//        e.printStackTrace();
-//    }
-//}
-//
-///**
-// * BlockPosition
-// **/
-//
-//public static Object getBlockPosition(Block block) {
-//    try {
-//        Constructor<?> constructor;
-//        if (MainFunGames.version_name.contains("v1_18") || MainFunGames.version_name.equals("v1_17_R1") || MainFunGames.version_name.equals("v1_19_R1")) {
-//            constructor = getNMS_1_18("net.minecraft.core.BlockPosition").getConstructor(int.class, int.class, int.class);
-//        } else {
-//            constructor = getNMSclass("BlockPosition").getConstructor(int.class, int.class, int.class);
-//        }
-//        return constructor.newInstance(block.getX(), block.getY(), block.getZ());
-//    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
-//        e.printStackTrace();
-//    }
-//
-//    return null;
-//}
+        /**
+         * ВОЗВРАЩАЕТ БАККИТ СУЩЕСТВО
+         **/
+
+        fun getEntityBack(entity: Any): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getMethod("getBukkitEntity").invoke(entity)
+            else -> getNMSclass("Entity")!!.getMethod("getBukkitEntity").invoke(entity)
+        }
+
+        /**
+         * ENTITYFIREWORK
+         **/
+
+        fun create_entity(loc: Location, firework: ItemStack): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.projectile.EntityFireworks")!!
+                .getConstructor(getNMSclass("net.minecraft.world.level.World"), Double.javaClass, Double.javaClass, Double.javaClass, getNMSclass("net.minecraft.world.item.ItemStack"))
+                .newInstance(getWorld(loc), loc.getX(), loc.getY(), loc.getZ(), getItemStack(firework))
+            else -> getNMSclass("EntityFireworks")!!
+                .getConstructor(getNMSclass("World"), Double.javaClass, Double.javaClass, Double.javaClass, getNMSclass("ItemStack"))
+                .newInstance(getWorld(loc), loc.getX(), loc.getY(), loc.getZ(), getItemStack(firework))
+        }
+
+
+        /**
+         * ENTITYFIREWORK
+         **/
+
+        fun set_lifecycle(firework: Any) = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.projectile.EntityFireworks")!!.getDeclaredField("f").setInt(firework, 0)
+            else -> getNMSclass("EntityFireworks")!!.getDeclaredField("expectedLifespan").setInt(firework, 0);
+        }
+
+
+        /**
+         * ОТПРАВЛЯЕТ ПАКЕТ
+         **/
+
+        fun sendPacket(player: Player, packet: Any) {
+            when(SimplePlugin.version) {
+                "v1_19_R1", "v1_18_R2", "v1_18_R1" -> {
+                    var entityplayer = Class.forName("org.bukkit.craftbukkit." + SimplePlugin.version + ".entity.CraftPlayer").getMethod("getHandle").invoke(player)
+                    var playerConnection = entityplayer.javaClass.getField("b").get(entityplayer)
+                    getNMSclass("net.minecraft.server.network.PlayerConnection")!!.getMethod("a", getNMSclass("net.minecraft.network.protocol.Packet")).invoke(playerConnection, packet)
+                }
+                "v1_17_R1" -> {
+                    var entityplayer = Class.forName("org.bukkit.craftbukkit." + SimplePlugin.version + ".entity.CraftPlayer").getMethod("getHandle").invoke(player);
+                    var playerConnection = entityplayer.javaClass.getField("b").get(entityplayer);
+                    getNMSclass("net.minecraft.server.network.PlayerConnection")!!.getMethod("sendPacket", getNMSclass("net.minecraft.network.protocol.Packet")).invoke(playerConnection, packet);
+                }
+                else -> {
+                    var entityplayer = Class.forName("org.bukkit.craftbukkit." + SimplePlugin.version + ".entity.CraftPlayer").getMethod("getHandle").invoke(player);
+                    var playerConnection = entityplayer.javaClass.getField("playerConnection").get(entityplayer);
+                    getNMSclass("PlayerConnection")!!.getMethod("sendPacket", getNMSclass("Packet")).invoke(playerConnection, packet);
+                }
+            }
+        }
+
+        /**
+         * ПАКЕТ НА УНИЧТОЖЕНИЕ ENTITY
+         **/
+
+        fun PacketDestroy(id: Int): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy")!!.getConstructor(IntArray::class.java).newInstance(intArrayOf(id))
+            else -> getNMSclass("PacketPlayOutEntityDestroy")!!.getConstructor(IntArray::class.java).newInstance(intArrayOf(id))
+        }
+
+
+        /**
+         * ПАКЕТ НА СТАТУС
+         **/
+
+        fun PacketStatus(obj: Any, num: Byte): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus")!!.getConstructor(getNMSclass("net.minecraft.world.entity.Entity"), Byte.javaClass).newInstance(obj, num)
+            else -> getNMSclass("PacketPlayOutEntityStatus")!!.getConstructor(getNMSclass("Entity"), Byte.javaClass).newInstance(obj, num)
+        }
+
+
+        /**
+         * СПАВНИТ СОЗДАННЫЙ ENTITY
+         **/
+
+        fun PacketSpawn(obj: Any): Any = when(SimplePlugin.version){
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity")!!.getConstructor(getNMSclass("net.minecraft.world.entity.Entity")).newInstance(obj)
+            "v1_12_R1", "v1_13_R1", "v1_13_R2" -> getNMSclass("PacketPlayOutSpawnEntity")!!.getConstructor(getNMSclass("Entity"), Int.javaClass).newInstance(obj, 76)
+            else -> getNMSclass("PacketPlayOutSpawnEntity")!!.getConstructor(getNMSclass("Entity")).newInstance(obj)
+        }
+
+
+        /**
+         * ПАКЕТ НА META ENTITY
+         **/
+
+        fun PacketPlayOutEntityMetadata(entity: Any, watcher: Any): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata")!!.getConstructor(Int.javaClass, getNMSclass("net.minecraft.network.syncher.DataWatcher"), Boolean.javaClass).newInstance(getEntityId(entity), watcher, false)
+            else -> getNMSclass("PacketPlayOutEntityMetadata")!!.getConstructor(Int.javaClass, getNMSclass("DataWatcher"), Boolean.javaClass).newInstance(getEntityId(entity), watcher, false)
+        }
+
+
+        /**
+         * ПОЛУЧЕНИЕ ПРЕДМЕТА, ЧТОБЫ ЗАТЕМ ИЗМЕНЯТЬ ТЭГ
+         **/
+
+        fun getItemStack(item: Any): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("org.bukkit.craftbukkit." + SimplePlugin.version + ".inventory.CraftItemStack")!!.getMethod("asNMSCopy", ItemStack::class.java).invoke(null, item)
+            else -> getCraftBukkitclass("CraftItemStack")!!.getMethod("asNMSCopy", ItemStack::class.java).invoke(null, item)
+        }
+
+
+        /**
+         * ВОЗВРАЩАЕТ ТЭГ ПРЕДМЕТА
+         **/
+
+        fun getTag_(item: Any): Any = when(SimplePlugin.version) {
+            "v1_19_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("u").invoke(item)
+            "v1_18_R2" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("t").invoke(item)
+            "v1_18_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("s").invoke(item)
+            "v1_17_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("getTag").invoke(item)
+            else -> getNMSclass("ItemStack")!!.getMethod("getTag").invoke(item)
+        }
+
+        /**
+         * ПОЛУЧАЕТ ТЭГ, ЗАДАННЫЙ ДЛЯ БУМБОКСА
+         **/
+
+        fun getTagTag(item: Any, tagname: String): String {
+            var tag = getTag_(item)
+            return when(SimplePlugin.version) {
+                "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("net.minecraft.nbt.NBTTagCompound")!!.getMethod("l", String.javaClass).invoke(tag, tagname).toString()
+                "v1_17_R1" -> getNMSclass("net.minecraft.nbt.NBTTagCompound")!!.getMethod("getString", String.javaClass).invoke(tag, tagname).toString()
+                else -> getNMSclass("NBTTagCompound")!!.getMethod("getString", String.javaClass).invoke(tag, tagname).toString()
+            }
+        }
+
+        /**
+         * ПОЛУЧАЕТ, ЛИБО СОЗДАЕТ ТЭГ
+         **/
+
+        fun getOrCreateTag_(item: Any): Any = when(SimplePlugin.version) {
+            "v1_19_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("v").invoke(item)
+            "v1_18_R2" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("u").invoke(item)
+            "v1_18_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("t").invoke(item)
+            "v1_17_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("getOrCreateTag").invoke(item)
+            "v1_12_R1" -> {
+                var obj = getNMSclass("ItemStack")!!.getMethod("getTag").invoke(item)
+                if (obj == null) getNMSclass("NBTTagCompound")!!.getConstructor().newInstance() else obj;
+            }
+            else -> getNMSclass("ItemStack")!!.getMethod("getOrCreateTag").invoke(item)
+        }
+
+        /**
+         * ЗАДАЕТ ТЭГ ПОД БУМБОКС
+         **/
+
+        fun setTag(item: Any, tagname: String, tag: String) = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("net.minecraft.nbt.NBTTagCompound")!!.getMethod("a", String.javaClass, String.javaClass).invoke(item, tagname, tag)
+            "v1_17_R1" -> getNMSclass("net.minecraft.nbt.NBTTagCompound")!!.getMethod("setString", String.javaClass, String.javaClass).invoke(item, tagname, tag)
+            else -> getNMSclass("NBTTagCompound")!!.getMethod("setString", String.javaClass, String.javaClass).invoke(item, tagname, tag)
+        }
+
+
+        /**
+         * СТАВИТ ТЭГ НА ПРЕДМЕТ
+         **/
+
+        fun setTag(item: Any, comp: Any) = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("c", getNMSclass("net.minecraft.nbt.NBTTagCompound")).invoke(item, comp)
+            "v1_17_R1" -> getNMSclass("net.minecraft.world.item.ItemStack")!!.getMethod("setTag", getNMSclass("net.minecraft.nbt.NBTTagCompound")).invoke(item, comp)
+            else -> getNMSclass("ItemStack")!!.getMethod("setTag", getNMSclass("NBTTagCompound")).invoke(item, comp)
+        }
+
+
+        /**
+         * ВОЗВРАЩАЕТ ПРЕДМЕТ С ИЗМЕНЕННЫМ ТЭГОМ
+         **/
+
+        fun getItemBack(item: Any): ItemStack = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2" -> getNMSclass("org.bukkit.craftbukkit." + SimplePlugin.version + ".inventory.CraftItemStack")!!.getMethod("asCraftMirror", getNMSclass("net.minecraft.world.item.ItemStack")).invoke(null, item) as ItemStack
+            "v1_18_R1", "v1_17_R1" -> getCraftBukkitclass("CraftItemStack")!!.getMethod("asCraftMirror", getNMSclass("net.minecraft.world.item.ItemStack")).invoke(null, item) as ItemStack
+            else -> getCraftBukkitclass("CraftItemStack")!!.getMethod("asCraftMirror", getNMSclass("ItemStack")).invoke(null, item) as ItemStack
+        }
+
+        /**
+         * DATAWATCHER АРМОРСТЕНДА
+         **/
+
+        fun getDataWatcher(stand: Any): Any {
+            var field: Field? = when(SimplePlugin.version) {
+                "v1_19_R1", "v1_18_R2", "v1_17_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("Y")
+                "v1_18_R1" -> getNMSclass("net.minecraft.world.entity.Entity")!!.getDeclaredField("Z")
+                else -> null
+            }
+            field
+            if(field != null){
+                field.isAccessible = true
+                return field.get(stand)
+            }else{
+                return getNMSclass("Entity")!!.getMethod("getDataWatcher").invoke(stand)
+            }
+        }
+
+        /**
+         * TileEntitySkull
+         **/
+
+        fun getTileEntitySkull(block: Block, profile: GameProfile) {
+            var a = getWorld(block.getLocation())
+            when (SimplePlugin.version) {
+                "v1_19_R1", "v1_18_R2", "v1_18_R1" -> {
+                    var b = getNMSclass("net.minecraft.world.level.World")!!.getMethod("getBlockEntity", getNMSclass("net.minecraft.core.BlockPosition"), Boolean.javaClass).invoke(a, getBlockPosition(block), true)
+                    getNMSclass("net.minecraft.world.level.block.entity.TileEntitySkull")!!.getMethod("a", GameProfile::class.java).invoke(b, profile)
+                }
+                "v1_17_R1" -> {
+                    var b = getNMSclass("net.minecraft.world.level.World")!!.getMethod("getTileEntity", getNMSclass("net.minecraft.core.BlockPosition")).invoke(a, getBlockPosition(block))
+                    getNMSclass("net.minecraft.world.level.block.entity.TileEntitySkull")!!.getMethod("setGameProfile", GameProfile::class.java).invoke(b, profile);
+                }
+                else -> {
+                    var b = getNMSclass("WorldServer")!!.getMethod("getTileEntity", getNMSclass("BlockPosition")).invoke(a, getBlockPosition(block));
+                    getNMSclass("TileEntitySkull")!!.getMethod("setGameProfile", GameProfile::class.java).invoke(b, profile)
+                }
+            }
+        }
+
+        /**
+         * BlockPosition
+         **/
+
+        fun getBlockPosition(block: Block): Any = when(SimplePlugin.version) {
+            "v1_19_R1", "v1_18_R2", "v1_18_R1", "v1_17_R1" -> getNMSclass("net.minecraft.core.BlockPosition")!!.getConstructor(Int.javaClass, Int.javaClass, Int.javaClass).newInstance(block.getX(), block.getY(), block.getZ())
+            else -> getNMSclass("BlockPosition")!!.getConstructor(Int.javaClass, Int.javaClass, Int.javaClass).newInstance(block.getX(), block.getY(), block.getZ())
+        }
+
+    }
 
 }

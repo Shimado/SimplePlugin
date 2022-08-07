@@ -4,10 +4,7 @@ import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.Particle.DustOptions
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import java.io.IOException
-import java.util.*
 
 class SFunc {
 
