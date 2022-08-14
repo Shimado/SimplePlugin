@@ -1,7 +1,7 @@
 # SIMPLE PLUGIN
 
-A plugin that simplifies working with basic things. 
-Created for development and implementation in minecraft plugins.
+Greetings! This dependency simplifies the work when creating minecraft plugins. 
+It has a number of functions in different parts of the functionality. List of things where it can be used:
 - Config
 - Text
 - Items
@@ -10,12 +10,10 @@ Created for development and implementation in minecraft plugins.
 ### IMPORT
 
 ```
-<repositories>
-	<repository>
-		<id>jitpack.io</id>
-		<url>https://jitpack.io</url>
-	</repository>
-</repositories>
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
 ```
 
 ```
@@ -27,6 +25,7 @@ Created for development and implementation in minecraft plugins.
 ```
 
 ### START
+Most methods are static. For NMS to work, you need to set the version
 
 ```
 SimplePlugin plugin = new SimplePlugin("v1_12_R1")

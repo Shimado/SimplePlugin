@@ -16,20 +16,23 @@ import java.util.UUID
 
 class SItem {
 
-    /**
-     * ДАЕТ ИГРОКУ КАСТОМНЫЙ ПРЕДМЕТ ПО МАТЕРИАЛУ
-     * **/
-
     companion object {
 
+        /**
+         * ДАЕТ ИГРОКУ КАСТОМНЫЙ ПРЕДМЕТ ПО МАТЕРИАЛУ
+         * **/
+
+        @JvmStatic
         fun create(material: Material, name: String, lore: List<String>, enchant: Boolean): ItemStack {
             return create(ItemStack(material), name, lore, enchant)!!
         }
+
 
         /**
          * ДАЕТ ИГРОКУ КАСТОМНЫЙ ПРЕДМЕТ ПО ПРЕДМЕТУ
          * **/
 
+        @JvmStatic
         fun create(item: ItemStack, name: String, lore: List<String>, enchant: Boolean): ItemStack? {
             var meta: ItemMeta = item.itemMeta!!
             meta.setDisplayName(SText.getColor(name))
@@ -45,10 +48,12 @@ class SItem {
             return item;
         }
 
+
         /**
          * ПОЛУЧАЕТ ГОЛОВУ ИГРОКА И ДЕЛАЕТ ОПИСАНИЕ
          **/
 
+        @JvmStatic
         fun getHead(url: String, name: String, lore: List<String>, enchant: Boolean): ItemStack? {
             var url = "http://textures.minecraft.net/texture/".plus(url)
             var skull = ItemStack(Material.PLAYER_HEAD)
@@ -68,6 +73,7 @@ class SItem {
          * СОЗДАЕТ ПРЕДМЕТ С ТЕГОМ
          * **/
 
+        @JvmStatic
         fun createTag(url: Any, name: String, lore: List<String>, enchant: Boolean, tagname: String, tag: String): ItemStack {
             var item = when(url){
                 url is Material -> create(ItemStack(url as Material), name, lore, enchant)
@@ -87,6 +93,7 @@ class SItem {
          * РАСШИФРОВЫВАЕТ ОПИСАНИЕ ПРЕДМЕТА
          * **/
 
+        @JvmStatic
         fun getTag(item: ItemStack, tag: String): String? {
             var obj = NMS.getItemStack(item)
 
@@ -102,6 +109,7 @@ class SItem {
          * СТАВИТ БРОНЮ
          * **/
 
+        @JvmStatic
         fun setArmor(item: ItemStack, armor: Double): ItemStack{
             var modifier = AttributeModifier(UUID.randomUUID(), "geretic.armor", armor, AttributeModifier.Operation.ADD_NUMBER);
             var meta = item.itemMeta;
@@ -115,9 +123,10 @@ class SItem {
          * КОЖАННАЯ БРОНЯ
          **/
 
+        @JvmStatic
         fun getColorArmor(color: Color, slot: Int): ItemStack {
 
-            var item = SItem.create(
+            var item = create(
                 when(slot){
                     1 -> Material.LEATHER_HELMET
                     2 -> Material.LEATHER_CHESTPLATE

@@ -4,6 +4,7 @@ import org.bukkit.ChatColor
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
+
 class SText {
 
     companion object{
@@ -13,6 +14,8 @@ class SText {
         /**
          * ОКРАШИВАЕТ ТЕКСТ
          */
+
+        @JvmStatic
         fun getColor(text: String): String {
             var text = text;
             var matcher = pattern.matcher(text)
@@ -24,9 +27,12 @@ class SText {
             return ChatColor.translateAlternateColorCodes('&', text)
         }
 
+
         /**
          * ОКРАШИВАЕТ ОПИСАНИЕ ПРЕДМЕТА
          */
+
+        @JvmStatic
         fun getColorList(text: List<String>): List<String> {
             return text.stream().map { l: String -> getColor(l) }.collect(Collectors.toList())
         }

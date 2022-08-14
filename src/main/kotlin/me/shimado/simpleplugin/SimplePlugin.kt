@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin
 class SimplePlugin {
 
     companion object{
+        @JvmStatic
         var version: String = ""
     }
 

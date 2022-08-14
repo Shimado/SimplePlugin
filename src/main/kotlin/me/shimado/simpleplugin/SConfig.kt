@@ -78,7 +78,6 @@ class SConfig {
             messages = YamlConfiguration.loadConfiguration(messages_file!!);
         }
 
-
     }
 
 }
