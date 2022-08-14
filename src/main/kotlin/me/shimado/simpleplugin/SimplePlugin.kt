@@ -1,6 +1,7 @@
 package me.shimado.simpleplugin
 
 import org.bukkit.Bukkit
+import org.bukkit.Server
 import org.bukkit.plugin.java.JavaPlugin
 
 class SimplePlugin {
@@ -10,8 +11,8 @@ class SimplePlugin {
         var version: String = ""
     }
 
-    constructor(version: JavaPlugin){
-        SimplePlugin.version = Bukkit::class.java.packageName.split("\\.")[3];
+    constructor(server: Server){
+        SimplePlugin.version = server.javaClass.getPackage().getName().split("\\.")[3];
     }
 
 }
